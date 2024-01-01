@@ -1,7 +1,4 @@
 {
   "version": "0.0.4",
-  "api_key": "1392843a-9f49-4268-93c1-ca2e3b6948a5",
-  "include": [
-    "test_package"
-  ]
+  "include": ["test_package"]
 }

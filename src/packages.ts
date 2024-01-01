@@ -2,9 +2,11 @@ import AdmZip from "adm-zip";
 import fs from "fs";
 import {
   defaultPublish,
+  getBinConfig,
   getConfig,
   getPackageJson,
   packageJsonDependencies,
+  updateBinConfig,
   updateConfig,
   updatePackageJson,
 } from "../files";
@@ -12,6 +14,7 @@ import { PackageExists, sendPackage, testApiKey } from "./api";
 import { Prompt } from "../bun_module/console";
 
 export const packageFileName = "package.zip";
+export const prefix = "@bunpmjs/";
 
 export function zipFiles(compile: Array<string>, required?: Array<string>) {
   const zip = new AdmZip();
@@ -30,6 +33,7 @@ export function zipFiles(compile: Array<string>, required?: Array<string>) {
 
 export async function Publish() {
   let config = await getConfig();
+  let binConfig = await getBinConfig();
   const packageJson = await getPackageJson();
   const form = new FormData();
 
@@ -41,7 +45,7 @@ export async function Publish() {
 
   zipFiles([...config.include, ...defaultPublish], ["package.json"]);
 
-  if (!config.api_key) {
+  if (!binConfig.api_key) {
     console.log("api_key not set in bunpm.json\n\n");
     const key = await Prompt({
       message: "your api key",
@@ -50,17 +54,18 @@ export async function Publish() {
           api_key: key,
         });
       },
+      errorMsg: "Your api key is not valid",
     });
-    await updateConfig({
+    await updateBinConfig({
       api_key: key,
     });
-    config = await getConfig();
+    binConfig = await getBinConfig();
   }
 
   form.append("package", Bun.file(packageFileName), packageFileName);
 
   const res = await sendPackage({
-    api_key: config.api_key as string,
+    api_key: binConfig.api_key as string,
     formdata: form,
     packageName: packageJson.name,
   });
@@ -83,41 +88,19 @@ export async function Install(
   name: string,
   type: "dev" | "peer" | "dep" | keyof packageJsonDependencies
 ) {
-  const res = await PackageExists(name.split("@")[0]);
+  const res = await PackageExists(
+    name.split("@")[name.startsWith("@") ? 1 : 0]
+  );
   if (!res.status) return console.log(`the package "${name}" do not exists`);
-  console.log(res);
 
-  const version = name.split("@")[1] || undefined;
-  if (version && version != "latest" && !res.version.includes(version)) {
-    return console.log(
-      `version: "${version}" do not exists on the package: "${
-        res.name.split("/")[1]
-      }"`
-    );
-  }
-
-  const packageJson = await getPackageJson();
-
-  switch (type) {
-    case "dep":
-      type = "dependencies";
-      break;
-    case "peer":
-      type = "peerDependencies";
-      break;
-    case "dev":
-      type = "devDependencies";
-      break;
-  }
-
-  await updatePackageJson({
-    [type]: {
-      ...(await getPackageJson())[type],
-      [res.name]: version ? version : res.version.at(-1),
-    },
-  });
   const install_process = Bun.spawn({
-    cmd: ["bun", "install"],
+    cmd: ["bun", "install", `${prefix}${name}`],
+    stdout: "inherit",
+    stdin: "inherit",
+  });
+}
+export function Remove(name: string) {
+  Bun.spawn(["bun", "remove", `${prefix}${name}`], {
     stdout: "inherit",
     stdin: "inherit",
   });

@@ -1,8 +1,11 @@
 {
   "name": "bunpm-bin",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "type": "module",
   "module": "index.ts",
+  "scripts": {
+    "build": "bun build index.ts --compile --outfile ./dist/bunpm"
+  },
   "dependencies": {
     "@bunpmjs/bunpm-bin": "0.0.4",
     "@types/adm-zip": "^0.5.5",
