@@ -91,6 +91,7 @@ switch (arg.getMainArg() as mainArgs) {
     } else Remove(removeName);
     break;
   case "test":
+    await testApiKey({ api_key: arg.get("key") || "" });
     break;
   case "create":
     await Create();

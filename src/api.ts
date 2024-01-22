@@ -26,6 +26,7 @@ export async function sendPackage({
 
 export async function testApiKey({ api_key }: { api_key: string }) {
   const url = process.env.BASE_URL as string;
+  console.log(url);
   const res = await fetch(`${url}/api/v1/key`, {
     method: "GET",
     headers: {
