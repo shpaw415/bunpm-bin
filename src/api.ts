@@ -16,7 +16,7 @@ export async function sendPackage({
     },
     body: formdata,
   });
-  if (!res.ok) throw new Error("cannot send package to the server");
+  if (!res.ok) throw new Error(await res.text());
   const data = (await res.json()) as
     | { status: false; message: string }
     | { status: true };
