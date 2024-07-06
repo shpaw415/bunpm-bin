@@ -10,7 +10,7 @@
   "dependencies": {
     "@bunpmjs/bunpm-bin": "0.0.4",
     "@types/adm-zip": "^0.5.5",
-    "adm-zip": "0.5.10",
+    "adm-zip": "0.5.14",
     "prettier-package-json": "^2.8.0"
   },
   "peerDependencies": {
